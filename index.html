@@ -478,46 +478,32 @@
         }
         
         function generateResponse(prompt) {
-            // Demo responses - replace with actual AI API
-            const responses = {
-                'python': `Here's a Python calculator code:\n\n<code>
-def calculator():
-    print("Simple Calculator")
-    print("1. Add")
-    print("2. Subtract")
-    print("3. Multiply")
-    print("4. Divide")
-    
-    choice = input("Enter choice (1/2/3/4): ")
-    num1 = float(input("Enter first number: "))
-    num2 = float(input("Enter second number: "))
-    
-    if choice == '1':
-        print(f"Result: {num1 + num2}")
-    elif choice == '2':
-        print(f"Result: {num1 - num2}")
-    elif choice == '3':
-        print(f"Result: {num1 * num2}")
-    elif choice == '4':
-        print(f"Result: {num1 / num2}")
-    else:
-        print("Invalid input")
-
-calculator()
-</code>`,
-                'quantum': `Quantum computing is a revolutionary technology that uses quantum mechanics to process information. Unlike classical computers that use bits (0 or 1), quantum computers use "qubits" that can exist in multiple states simultaneously through superposition. This allows them to solve certain problems exponentially faster than classical computers.`,
-                'story': `Once upon a time in a digital world, there lived an AI named WORM. It had unlimited thinking power and helped anyone who asked. One day, a young student asked WORM to help with their homework. WORM happily assisted, and the student learned so much. And they lived happily ever after! 🤖✨`,
-                'math': `I'd be happy to help with math problems! Please tell me what specific math problem you'd like help with:\n\n- Addition/Subtraction\n- Multiplication/Division\n- Algebra\n- Calculus\n- And more!\n\nWhat would you like to solve?`
-            };
+            // Ollama API configuration
+            const OLLAMA_API_URL = 'https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/v1/chat/completions';
+            const MODEL = 'llama3.2';
             
-            const promptLower = prompt.toLowerCase();
-            for (let key in responses) {
-                if (promptLower.includes(key)) {
-                    return responses[key];
-                }
-            }
-            
-            return `Thanks for your message! I'm WORM GPT - your AI assistant with unlimited thinking power.\n\nI can help you with:\n- 📝 Writing code\n- 🔬 Explaining concepts\n- 📖 Creative writing\n- 🔢 Math problems\n- 💡 Ideas and brainstorming\n\nWhat would you like help with?`;
+            fetch(OLLAMA_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages: [{ role: 'user', content: prompt }],
+                    stream: false
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const response = data.choices?.[0]?.message?.content || 'Sorry, I could not get a response.';
+                addMessage(response, 'bot');
+                hideTyping();
+            })
+            .catch(err => {
+                console.error(err);
+                addMessage('Error connecting to AI. Please try again.', 'bot');
+                hideTyping();
+            });
         }
         
         function showLogin() {
