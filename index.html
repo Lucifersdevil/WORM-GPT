@@ -482,26 +482,35 @@
             const OLLAMA_API_URL = 'https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/api/chat';
             const MODEL = 'llama2-uncensored';
             
+            const requestBody = {
+                model: MODEL,
+                messages: [{ role: 'user', content: prompt }],
+                stream: false
+            };
+            
+            console.log('Sending request to:', OLLAMA_API_URL);
+            console.log('Request body:', requestBody);
+            
             fetch(OLLAMA_API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    model: MODEL,
-                    messages: [{ role: 'user', content: prompt }],
-                    stream: false
-                })
+                body: JSON.stringify(requestBody)
             })
-            .then(res => res.json())
+            .then(res => {
+                console.log('Response status:', res.status);
+                return res.json();
+            })
             .then(data => {
-                const response = data.message?.content || data.response || 'Sorry, I could not get a response.';
+                console.log('Response data:', data);
+                const response = data.message?.content || data.response || 'Sorry, I could not get a response. Error: ' + JSON.stringify(data);
                 addMessage(response, 'bot');
                 hideTyping();
             })
             .catch(err => {
-                console.error(err);
-                addMessage('Error connecting to AI. Please try again.', 'bot');
+                console.error('Error:', err);
+                addMessage('Error: ' + err.message, 'bot');
                 hideTyping();
             });
         }
