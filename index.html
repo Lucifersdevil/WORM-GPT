@@ -479,7 +479,7 @@
         
         function generateResponse(prompt) {
             // Ollama API configuration
-            const OLLAMA_API_URL = 'https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/v1/chat/completions';
+            const OLLAMA_API_URL = 'https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/api/chat';
             const MODEL = 'llama2-uncensored';
             
             fetch(OLLAMA_API_URL, {
@@ -495,7 +495,7 @@
             })
             .then(res => res.json())
             .then(data => {
-                const response = data.choices?.[0]?.message?.content || 'Sorry, I could not get a response.';
+                const response = data.message?.content || data.response || 'Sorry, I could not get a response.';
                 addMessage(response, 'bot');
                 hideTyping();
             })
