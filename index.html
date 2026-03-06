@@ -478,25 +478,20 @@
         }
         
         function generateResponse(prompt) {
-            // Ollama API configuration
-            const OLLAMA_API_URL = 'https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/api/chat';
+            // Using CORS proxy to access Ollama
+            const OLLAMA_API_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/api/chat');
             const MODEL = 'llama2-uncensored';
-            
-            const requestBody = {
-                model: MODEL,
-                messages: [{ role: 'user', content: prompt }],
-                stream: false
-            };
-            
-            console.log('Sending request to:', OLLAMA_API_URL);
-            console.log('Request body:', requestBody);
             
             fetch(OLLAMA_API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages: [{ role: 'user', content: prompt }],
+                    stream: false
+                })
             })
             .then(res => {
                 console.log('Response status:', res.status);
