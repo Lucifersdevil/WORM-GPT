@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORM GPT - AI Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #00ff88;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo img {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-buttons button {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        
+        .header-buttons button:hover {
+            background: #00ff88;
+            color: #0a0a0a;
+        }
+        
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #121212;
+            border-right: 1px solid #2a2a2a;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+        
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            border: none;
+            border-radius: 10px;
+            color: #0a0a0a;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .chat-item {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            color: #888;
+            transition: all 0.3s;
+        }
+        
+        .chat-item:hover {
+            background: #1a1a1a;
+            color: #fff;
+        }
+        
+        .chat-item.active {
+            background: #1a1a2e;
+            color: #00ff88;
+        }
+        
+        /* Main Chat */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0a;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .message.user .message-avatar {
+            background: #00ff88;
+        }
+        
+        .message.bot .message-avatar {
+            background: #1a1a2e;
+            border: 1px solid #00ff88;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 15px;
+            line-height: 1.6;
+        }
+        
+        .message.user .message-content {
+            background: #1a1a2e;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.bot .message-content {
+            background: #121212;
+            border-bottom-left-radius: 5px;
+            border: 1px solid #2a2a2a;
+        }
+        
+        .message.bot .message-content code {
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: #121212;
+            border-top: 1px solid #2a2a2a;
+        }
+        
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .input-wrapper input {
+            flex: 1;
+            padding: 15px 20px;
+            background: #1a1a1a;
+            border: 2px solid #2a2a2a;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .input-wrapper input:focus {
+            border-color: #00ff88;
+        }
+        
+        .input-wrapper button {
+            padding: 15px 30px;
+            background: #00ff88;
+            border: none;
+            border-radius: 25px;
+            color: #0a0a0a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .input-wrapper button:hover {
+            background: #00cc6a;
+            transform: scale(1.05);
+        }
+        
+        .input-wrapper button:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+        
+        /* Loading */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 10px;
+        }
+        
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        /* Welcome Screen */
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .welcome-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .welcome-screen p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 600px;
+        }
+        
+        .suggestion {
+            padding: 15px 20px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        
+        .suggestion:hover {
+            border-color: #00ff88;
+            background: #1a1a2e;
+        }
+        
+        /* Credits */
+        .credits-info {
+            margin-top: auto;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .credits-info .balance {
+            font-size: 1.5rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .credits-info .label {
+            color: #666;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>🐛 WORM GPT</h1>
+        </div>
+        <div class="header-buttons">
+            <button onclick="showLogin()">Login</button>
+            <button onclick="showRegister()">Register</button>
+        </div>
+    </header>
+    
+    <div class="chat-container">
+        <div class="sidebar">
+            <button class="new-chat-btn" onclick="newChat()">+ New Chat</button>
+            
+            <div class="chat-history" id="chatHistory">
+                <div class="chat-item active">💬 Chat 1</div>
+                <div class="chat-item">💬 Chat 2</div>
+                <div class="chat-item">💬 Chat 3</div>
+            </div>
+            
+            <div class="credits-info">
+                <div class="balance">15</div>
+                <div class="label">Free Credits</div>
+            </div>
+        </div>
+        
+        <div class="chat-main">
+            <div class="welcome-screen" id="welcomeScreen">
+                <h2>🐛 WORM GPT</h2>
+                <p>Advanced AI for unlimited thinking power</p>
+                
+                <div class="suggestions">
+                    <div class="suggestion" onclick="sendMessage('Write a python code for calculator')">
+                        📝 Write a python code for calculator
+                    </div>
+                    <div class="suggestion" onclick="sendMessage('Explain quantum computing')">
+                        🔬 Explain quantum computing
+                    </div>
+                    <div class="suggestion" onclick="sendMessage('Write a creative story')">
+                        📖 Write a creative story
+                    </div>
+                    <div class="suggestion" onclick="sendMessage('Help with math problems')">
+                        🔢 Help with math problems
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages" style="display: none;"></div>
+            
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessageFromInput()" id="sendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let chatHistory = [];
+        let currentChat = [];
+        
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessageFromInput();
+            }
+        }
+        
+        function newChat() {
+            currentChat = [];
+            document.getElementById('chatMessages').style.display = 'none';
+            document.getElementById('welcomeScreen').style.display = 'flex';
+            document.getElementById('messageInput').value = '';
+        }
+        
+        function sendMessageFromInput() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (message) {
+                sendMessage(message);
+                input.value = '';
+            }
+        }
+        
+        function sendMessage(message) {
+            // Show chat view
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatMessages').style.display = 'block';
+            
+            // Add user message
+            addMessage(message, 'user');
+            
+            // Show typing indicator
+            showTyping();
+            
+            // Simulate AI response (replace with real API)
+            setTimeout(() => {
+                hideTyping();
+                const response = generateResponse(message);
+                addMessage(response, 'bot');
+            }, 1500);
+        }
+        
+        function addMessage(content, type) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = type === 'user' ? '👤' : '🐛';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            currentChat.push({ type, content });
+        }
+        
+        function showTyping() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🐛</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(typingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function hideTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+        
+        function generateResponse(prompt) {
+            // Demo responses - replace with actual AI API
+            const responses = {
+                'python': `Here's a Python calculator code:\n\n<code>
+def calculator():
+    print("Simple Calculator")
+    print("1. Add")
+    print("2. Subtract")
+    print("3. Multiply")
+    print("4. Divide")
+    
+    choice = input("Enter choice (1/2/3/4): ")
+    num1 = float(input("Enter first number: "))
+    num2 = float(input("Enter second number: "))
+    
+    if choice == '1':
+        print(f"Result: {num1 + num2}")
+    elif choice == '2':
+        print(f"Result: {num1 - num2}")
+    elif choice == '3':
+        print(f"Result: {num1 * num2}")
+    elif choice == '4':
+        print(f"Result: {num1 / num2}")
+    else:
+        print("Invalid input")
+
+calculator()
+</code>`,
+                'quantum': `Quantum computing is a revolutionary technology that uses quantum mechanics to process information. Unlike classical computers that use bits (0 or 1), quantum computers use "qubits" that can exist in multiple states simultaneously through superposition. This allows them to solve certain problems exponentially faster than classical computers.`,
+                'story': `Once upon a time in a digital world, there lived an AI named WORM. It had unlimited thinking power and helped anyone who asked. One day, a young student asked WORM to help with their homework. WORM happily assisted, and the student learned so much. And they lived happily ever after! 🤖✨`,
+                'math': `I'd be happy to help with math problems! Please tell me what specific math problem you'd like help with:\n\n- Addition/Subtraction\n- Multiplication/Division\n- Algebra\n- Calculus\n- And more!\n\nWhat would you like to solve?`
+            };
+            
+            const promptLower = prompt.toLowerCase();
+            for (let key in responses) {
+                if (promptLower.includes(key)) {
+                    return responses[key];
+                }
+            }
+            
+            return `Thanks for your message! I'm WORM GPT - your AI assistant with unlimited thinking power.\n\nI can help you with:\n- 📝 Writing code\n- 🔬 Explaining concepts\n- 📖 Creative writing\n- 🔢 Math problems\n- 💡 Ideas and brainstorming\n\nWhat would you like help with?`;
+        }
+        
+        function showLogin() {
+            alert('Login feature coming soon!');
+        }
+        
+        function showRegister() {
+            alert('Register feature coming soon!');
+        }
+    </script>
+</body>
+</html>
