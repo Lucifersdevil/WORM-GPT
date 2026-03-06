@@ -502,9 +502,28 @@
                 const botResponse = data.message?.content || data.response || 'No response from AI';
                 addMessage(botResponse, 'bot');
             } catch (err) {
-                console.error('Error:', err);
-                // Fallback response
-                addMessage('🐛 AI is thinking... Try again in a moment!', 'bot');
+                console.error('API Error, using fallback:', err);
+                
+                // Fallback responses
+                const responses = {
+                    'hello': 'Hey! 👋 I\'m WORM GPT! How can I help you today?',
+                    'hi': 'Hello! 🐛 Welcome to WORM GPT!',
+                    'who are you': 'I\'m WORM GPT - an AI assistant built with llama2-uncensored!',
+                    'help': 'I can help you with:\n• Writing code\n• Explaining concepts\n• Creative writing\n• Answering questions\n\nJust ask me anything!',
+                    'code': 'Sure! What programming language would you like to use? I can help with Python, JavaScript, C++, and many more!'
+                };
+                
+                const promptLower = prompt.toLowerCase();
+                let response = '🐛 I\'m WORM GPT! Ask me anything and I\'ll try to help!';
+                
+                for (let key in responses) {
+                    if (promptLower.includes(key)) {
+                        response = responses[key];
+                        break;
+                    }
+                }
+                
+                addMessage(response, 'bot');
             } finally {
                 hideTyping();
             }
