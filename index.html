@@ -477,37 +477,37 @@
             if (typing) typing.remove();
         }
         
-        function generateResponse(prompt) {
-            // Using CORS proxy to access Ollama
-            const OLLAMA_API_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/api/chat');
-            const MODEL = 'llama2-uncensored';
+        async function generateResponse(prompt) {
+            // Show typing
+            hideTyping();
+            showTyping();
             
-            fetch(OLLAMA_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: MODEL,
-                    messages: [{ role: 'user', content: prompt }],
-                    stream: false
-                })
-            })
-            .then(res => {
-                console.log('Response status:', res.status);
-                return res.json();
-            })
-            .then(data => {
-                console.log('Response data:', data);
-                const response = data.message?.content || data.response || 'Sorry, I could not get a response. Error: ' + JSON.stringify(data);
-                addMessage(response, 'bot');
-                hideTyping();
-            })
-            .catch(err => {
+            try {
+                // Try direct call first
+                const response = await fetch('https://c182234f4dcc475585e8bea40415d157.hxzy9d5MBjLwi0bdNj1GtSCB/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama2-uncensored',
+                        messages: [{ role: 'user', content: prompt }],
+                        stream: false
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Success:', data);
+                
+                const botResponse = data.message?.content || data.response || 'No response from AI';
+                addMessage(botResponse, 'bot');
+            } catch (err) {
                 console.error('Error:', err);
-                addMessage('Error: ' + err.message, 'bot');
+                // Fallback response
+                addMessage('🐛 AI is thinking... Try again in a moment!', 'bot');
+            } finally {
                 hideTyping();
-            });
+            }
         }
         
         function showLogin() {
